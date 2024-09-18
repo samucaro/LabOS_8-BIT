@@ -12,9 +12,9 @@ public class Client{
         int port = Integer.parseInt(args[1]);
 
         try {
-            Socket s = new Socket(host, port);
+            Socket s = new Socket(host, port); //bloccante
             System.out.println("Connected to server");
-            System.out.println("Insert <role> <topic>");
+            System.out.println("Publisher or Subscriber");
 
             /*
              * Delega la gestione di input/output a due thread separati, uno per inviare

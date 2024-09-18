@@ -1,4 +1,7 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -7,15 +10,17 @@ import java.util.ArrayList;
 public class SocketListener implements Runnable {
     ServerSocket server;
     ArrayList<Thread> children = new ArrayList<>();
+    DataServer dataStructure;
 
-    public SocketListener(ServerSocket server) {
+    public SocketListener(ServerSocket server, DataServer ds) {
         this.server = server;
+        this.dataStructure = ds;
     }
 
     @Override
     public void run() {
         try {
-            this.server.setSoTimeout(5000);
+            this.server.setSoTimeout(10000);
             while (!Thread.interrupted()) {
                 try {
                     System.out.println("Waiting for a new client...");
@@ -31,11 +36,47 @@ public class SocketListener implements Runnable {
                     Socket s = this.server.accept();
                     if (!Thread.interrupted()) {
                         System.out.println("Client connected");
+                        
+                        // Verifichiamo se client è publisher o subscriber
+                        BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                        PrintWriter output = new PrintWriter(s.getOutputStream(),true);
+                        boolean condizione = true;
 
-                        /* crea un nuovo thread per lo specifico socket */
-                        Thread handlerThread = new Thread(new ClientHandler(s));
-                        handlerThread.start();
-                        this.children.add(handlerThread);
+                        while(true){
+                        String type = in.readLine();
+                        String parts[] = type.split(" ");
+                            if(parts.length == 2) {
+                                /* crea un nuovo thread per lo specifico socket */
+                                if(parts[0].equalsIgnoreCase("publish")) {
+                                    
+                                    Thread handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
+                                    handlerThread.start();
+                                    this.children.add(handlerThread);
+                                   
+                                    //System.out.println("sei entrato nel thread publisher");
+                                    break;
+                                }
+                                else if(parts[0].equalsIgnoreCase("Subscribe")) {
+                                    /*  
+                                    Thread handlerThread = new Thread(new SubscriberHandler(s));
+                                    handlerThread.start();
+                                    this.children.add(handlerThread);
+                                    
+                                    //System.out.println("sei entrato nel thread subscribe");
+                                    break;
+                                    */        
+                                }
+                                else {
+                                    output.println("Wrong command, try again : ");
+                                }
+                            }
+                            else {
+                                output.println("Wrong command, try again : ");                           
+                            }
+                        }
+                        
+                        
+                        
                         /*
                          * una volta creato e avviato il thread, torna in ascolto per il prossimo client
                          */

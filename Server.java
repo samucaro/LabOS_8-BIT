@@ -1,9 +1,16 @@
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Server {
+
+    
+    
     public static void main(String[] args) {
+        
+        DataServer dataStructure = new DataServer(new HashMap<String, ArrayList<Messagges>>());
         
         if (args.length < 1) {
             System.err.println("Usage: java Server <port>");
@@ -20,7 +27,7 @@ public class Server {
              * principale ascoltiamo solo l'input da tastiera dell'utente (in caso voglia
              * chiudere il programma)
              */
-            Thread serverThread = new Thread(new SocketListener(server));
+            Thread serverThread = new Thread(new SocketListener(server, dataStructure));
             serverThread.start(); 
 
             String command = "";
@@ -30,17 +37,6 @@ public class Server {
              */
             while (!command.equals("quit")) {
                 command = userInput.nextLine();
-                
-                if(command.equals("show")){
-                    System.out.println("<Lista dei topic>");
-                    
-                }
-                else if(command.equals("inspect")){
-                    System.out.println("avvio sessione iterattiva");
-                }
-                else{
-                    System.out.println("Unexpected command");
-                }
             }
 
 
