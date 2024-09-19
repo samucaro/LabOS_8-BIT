@@ -34,41 +34,51 @@ public class SocketListener implements Runnable {
                      * Thread nella condizione del while().
                      */
                     Socket s = this.server.accept();
+                    
                     if (!Thread.interrupted()) {
                         System.out.println("Client connected");
                         
                         // Verifichiamo se client è publisher o subscriber
                         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
                         PrintWriter output = new PrintWriter(s.getOutputStream(),true);
-                        boolean condizione = true;
 
                         while(true){
-                        String type = in.readLine();
-                        String parts[] = type.split(" ");
+                            String type = in.readLine();
+                            String parts[] = type.split(" ");
                             if(parts.length == 2) {
                                 /* crea un nuovo thread per lo specifico socket */
-                                if(parts[0].equalsIgnoreCase("publish")) {
-                                    
+                                if(parts[0].equalsIgnoreCase("publish")) {                                
                                     Thread handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
                                     handlerThread.start();
                                     this.children.add(handlerThread);
-                                   
-                                    //System.out.println("sei entrato nel thread publisher");
                                     break;
                                 }
-                                else if(parts[0].equalsIgnoreCase("Subscribe")) {
-                                    /*  
-                                    Thread handlerThread = new Thread(new SubscriberHandler(s));
-                                    handlerThread.start();
-                                    this.children.add(handlerThread);
-                                    
-                                    //System.out.println("sei entrato nel thread subscribe");
-                                    break;
-                                    */        
-                                }
+                                else if(parts[0].equalsIgnoreCase("Subscribe")) { 
+                                    if(this.dataStructure.chats.keySet().contains(parts[1])){   
+                                        Thread handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
+                                        handlerThread.start();
+                                        this.children.add(handlerThread);
+                                        break;
+                                    }else{
+                                        output.println("Topic doesn't exist");
+                                        output.flush();
+                                    }           
+                                }                           
                                 else {
                                     output.println("Wrong command, try again : ");
                                 }
+                            } 
+                            else if(parts[0].equalsIgnoreCase("Show")) {
+                                String topic = "Topics :";
+                                for (String string : this.dataStructure.chats.keySet()) {
+                                    topic = topic + "\n     - " + string;
+                                }
+                                output.println(topic);
+                                output.flush();  
+                            }
+                            else if(parts[0].equalsIgnoreCase("quit")) {
+                                output.println("quit");
+                                output.flush();
                             }
                             else {
                                 output.println("Wrong command, try again : ");                           
@@ -110,7 +120,8 @@ public class SocketListener implements Runnable {
              * di interruzione proseguiamo con l'esecuzione, senza aspettare che "child"
              * termini
              */
-            child.interrupt();
+            if(child.isAlive())
+                child.interrupt();
         }
 
     }

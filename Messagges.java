@@ -12,7 +12,7 @@ public class Messagges {
     
     public String toString(){
         return "ID: "+ this.id + "\n" +
-        "Testo:\n" + this.contents + "\n" +
-        "Data: " + dataOra;
+        "Testo: " + this.contents + "\n" +
+        "Data: " + dataOra+"\n";
     }
 }

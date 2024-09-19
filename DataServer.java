@@ -23,6 +23,10 @@ public class DataServer {
         }
     }
     
+    public synchronized void addTopic(String newTopic){
+        this.chats.put(newTopic, new ArrayList<Messagges>());
+    }
+    
     // Metodo sincronizzato per leggere i messaggi di un topic
     public synchronized ArrayList<Messagges> getChats(String topic) {
         return this.chats.getOrDefault(topic, new ArrayList<Messagges>());

@@ -18,17 +18,18 @@ public class Receiver implements Runnable {
             Scanner from = new Scanner(this.s.getInputStream());
             while (true) {
                 String response = from.nextLine();
-                System.out.println("Received: " + response);
                 if (response.equals("quit")) {
+                    from.close();
                     break;
                 }
-
+                System.out.println(response);
             }
+            
         } catch (IOException e) {
             System.err.println("IOException caught: " + e);
             e.printStackTrace();
         } finally {
-            System.out.println("Receiver closed.");
+            System.out.println("Receiver closed.");            
             this.sender.interrupt();
         }
     }

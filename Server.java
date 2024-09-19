@@ -38,7 +38,7 @@ public class Server {
             while (!command.equals("quit")) {
                 command = userInput.nextLine();
             }
-
+            
 
             try {
                 serverThread.interrupt();
