@@ -1,0 +1,129 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+
+public class SocketListener implements Runnable {
+    ServerSocket server;
+    ArrayList<Thread> children = new ArrayList<>();
+    DataServer dataStructure;
+
+    public SocketListener(ServerSocket server, DataServer ds) {
+        this.server = server;
+        this.dataStructure = ds;
+    }
+
+    @Override
+    public void run() {
+        try {
+            this.server.setSoTimeout(10000);
+            while (!Thread.interrupted()) {
+                try {
+                    System.out.println("Waiting for a new client...");
+                    /*
+                     * Questa istruzione è bloccante, a prescindere da Thread.interrupt(). Occorre
+                     * quindi controllare, una volta accettata la connessione, che il server non sia
+                     * stato interrotto.
+                     * 
+                     * In caso venga raggiunto il timeout, viene sollevata una
+                     * SocketTimeoutException, dopo la quale potremo ricontrollare lo stato del
+                     * Thread nella condizione del while().
+                     */
+                    Socket s = this.server.accept();
+                    
+                    if (!Thread.interrupted()) {
+                        System.out.println("Client connected");
+                        
+                        // Verifichiamo se client è publisher o subscriber
+                        BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                        PrintWriter output = new PrintWriter(s.getOutputStream(),true);
+
+                        while(true){
+                            String type = in.readLine();
+                            String parts[] = type.split(" ");
+                            if(parts.length == 2) {
+                                /* crea un nuovo thread per lo specifico socket */
+                                if(parts[0].equalsIgnoreCase("publish")) {                                
+                                    Thread handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
+                                    handlerThread.start();
+                                    this.children.add(handlerThread);
+                                    break;
+                                }
+                                else if(parts[0].equalsIgnoreCase("Subscribe")) { 
+                                    if(this.dataStructure.chats.keySet().contains(parts[1])){   
+                                        Thread handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
+                                        handlerThread.start();
+                                        this.children.add(handlerThread);
+                                        break;
+                                    }else{
+                                        output.println("Topic doesn't exist");
+                                        output.flush();
+                                    }           
+                                }                           
+                                else {
+                                    output.println("Wrong command, try again : ");
+                                }
+                            } 
+                            else if(parts[0].equalsIgnoreCase("Show")) {
+                                String topic = "Topics :";
+                                for (String string : this.dataStructure.chats.keySet()) {
+                                    topic = topic + "\n     - " + string;
+                                }
+                                output.println(topic);
+                                output.flush();  
+                            }
+                            else if(parts[0].equalsIgnoreCase("quit")) {
+                                output.println("quit");
+                                output.flush();
+                            }
+                            else {
+                                output.println("Wrong command, try again : ");                           
+                            }
+                        }
+                        
+                        
+                        
+                        /*
+                         * una volta creato e avviato il thread, torna in ascolto per il prossimo client
+                         */
+                    } else {
+                        s.close();
+                        break;
+                    }
+                } catch (SocketTimeoutException e) {
+                    /* in caso di timeout procediamo semplicemente con l'esecuzione */
+                    System.out.println("Timeout, continuing...");
+                    continue;
+                } catch (IOException e) {
+                    /*
+                     * s.close() potrebbe sollevare un'eccezione; in questo caso non vogliamo finire
+                     * nel "catch" esterno, perché non abbiamo ancora chiamato this.server.close()
+                     */
+                    break;
+                }
+            }
+            this.server.close();
+        } catch (IOException e) {
+            System.err.println("SocketListener: IOException caught: " + e);
+            e.printStackTrace();
+        }
+
+        System.out.println("Interrupting children...");
+        for (Thread child : this.children) {
+            System.out.println("Interrupting " + child + "...");
+            /*
+             * child.interrupt() non è bloccante; una volta inviato il segnale
+             * di interruzione proseguiamo con l'esecuzione, senza aspettare che "child"
+             * termini
+             */
+            if(child.isAlive())
+                child.interrupt();
+        }
+
+    }
+
+}
