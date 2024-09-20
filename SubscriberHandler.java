@@ -29,7 +29,7 @@ public class SubscriberHandler implements Runnable {
                 else{
                     String[] parole=parola.split(" ");  
                         switch (parole[0]) {
-                            case "listAll":
+                            case "listall":
                                 String messaggiIntero2 = "";
                                 for(Messagges m : this.dataStructure.chats.get(this.topic)) {
                                 messaggiIntero2 += m.toString();

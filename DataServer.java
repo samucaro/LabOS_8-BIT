@@ -14,8 +14,11 @@ public class DataServer {
     public synchronized void addMessage(String contenuto, String topic, String dataOra) throws InterruptedException{
         contatoreID++;
         Messagges message = new Messagges(this.contatoreID, contenuto, dataOra);
-        if(this.chats.containsKey(topic)) //esiste già un topic con questo nome
+        if(this.chats.containsKey(topic)) {//esiste già un topic con questo nome
             this.chats.get(topic).add(message);
+            
+        }
+
         else { 
             ArrayList<Messagges> first = new ArrayList<Messagges>();
             first.add(message);

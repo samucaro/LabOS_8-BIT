@@ -21,7 +21,8 @@ public class PublisherHandler implements Runnable {
         try {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter pw = new PrintWriter(socket.getOutputStream());
-                dataStructure.addTopic(topic);
+                if(!dataStructure.chats.containsKey(topic))
+                    dataStructure.addTopic(topic);
                 
                 while (true) {
                     String parola = in.readLine(); 
@@ -34,13 +35,12 @@ public class PublisherHandler implements Runnable {
 
 
                     switch(parole[0]) {
-                        case "sent": 
+                        case "send": 
                             LocalDateTime now = LocalDateTime.now();
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                             String formattedDateTime = now.format(formatter);
                             dataStructure.addMessage(parola.substring(5), this.topic, formattedDateTime);
                             clientMessages.add(new Messagges(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
-                            pw.flush();
                             break;
 
                         case "list":
@@ -58,7 +58,7 @@ public class PublisherHandler implements Runnable {
                             }
                             break;
                             
-                        case "listAll":
+                        case "listall":
                             if(this.dataStructure.chats.get(this.topic).size()==0){
                                 pw.println("Nessun messaggio presente nel topic");
                                 pw.flush();
@@ -66,7 +66,7 @@ public class PublisherHandler implements Runnable {
                             else{
                                 String messaggiIntero2 = "";
                                 for(Messagges m : this.dataStructure.chats.get(this.topic)) {
-                                    messaggiIntero2 += m.toString();
+                                    messaggiIntero2 += m.toString() + "\n";
                                 }
                                 pw.println(messaggiIntero2); 
                                 pw.flush();
