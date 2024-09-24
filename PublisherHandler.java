@@ -21,8 +21,10 @@ public class PublisherHandler implements Runnable {
         try {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter pw = new PrintWriter(socket.getOutputStream());
-                if(!dataStructure.chats.containsKey(topic))
+                this.dataStructure.acquire_write_Lock();
+                if(!dataStructure.getChats().containsKey(topic))
                     dataStructure.addTopic(topic);
+                this.dataStructure.release_write_Lock();
                 
                 while (true) {
                     String parola = in.readLine(); 
@@ -39,8 +41,11 @@ public class PublisherHandler implements Runnable {
                             LocalDateTime now = LocalDateTime.now();
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                             String formattedDateTime = now.format(formatter);
+                            this.dataStructure.acquire_write_Lock(); //acquisiamo il lock in scrittura
+                            //String varifica=in.readLine();
                             dataStructure.addMessage(parola.substring(5), this.topic, formattedDateTime);
                             clientMessages.add(new Messagges(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
+                            this.dataStructure.release_write_Lock(); //rilasciamo il lock in scrittura
                             break;
 
                         case "list":
@@ -59,6 +64,7 @@ public class PublisherHandler implements Runnable {
                             break;
                             
                         case "listall":
+                            this.dataStructure.acquire_read_Lock();
                             if(this.dataStructure.chats.get(this.topic).size()==0){
                                 pw.println("Nessun messaggio presente nel topic");
                                 pw.flush();
@@ -71,6 +77,7 @@ public class PublisherHandler implements Runnable {
                                 pw.println(messaggiIntero2); 
                                 pw.flush();
                             }
+                            this.dataStructure.release_read_Lock();
                             break;
                             
                         case "quit":

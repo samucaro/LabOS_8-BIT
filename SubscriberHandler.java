@@ -30,12 +30,14 @@ public class SubscriberHandler implements Runnable {
                     String[] parole=parola.split(" ");  
                         switch (parole[0]) {
                             case "listall":
+                                this.dataStructure.acquire_read_Lock();
                                 String messaggiIntero2 = "";
                                 for(Messagges m : this.dataStructure.chats.get(this.topic)) {
                                 messaggiIntero2 += m.toString();
                                 }
                                 pw.println(messaggiIntero2); 
                                 pw.flush();
+                                this.dataStructure.release_read_Lock();
                                 break;
                             
                             case "quit":
