@@ -22,16 +22,17 @@ public class DataServer {
                 wait();
                 
             } catch (InterruptedException e) {
-            }
-            
+            } 
         }
         num_sub++;
     }
+
     public synchronized void release_read_Lock(){
         num_sub--;
         if(num_sub==0)
             notify();
     }
+
     public synchronized void acquire_write_Lock(){
         while(db_writing || num_sub!=0){
             try {
@@ -41,6 +42,7 @@ public class DataServer {
         }
         db_writing=true;
     }
+    
     public synchronized void release_write_Lock(){
        db_writing=false;
        
@@ -62,6 +64,22 @@ public class DataServer {
             this.chats.put(topic, first);
         }
     }
+
+    public boolean deleteMessage(String topic, int idMessage){
+        boolean deleted = false;
+        Messagges m;
+        if(idMessage <= this.chats.get(topic).get(this.chats.get(topic).size()-1).id && idMessage > 0){
+            for (int i = 0; i < this.chats.get(topic).size(); i++) {
+            m = this.chats.get(topic).get(i);
+            if(m.id == idMessage) {
+                this.chats.get(topic).remove(i);
+                deleted = true;
+            }
+        }
+        }
+            return deleted;
+    
+    }
     
     public void addTopic(String newTopic){
         this.chats.put(newTopic, new ArrayList<Messagges>());
@@ -79,4 +97,5 @@ public class DataServer {
     public int getContatoreID() {
         return contatoreID;
     }
+    
 }

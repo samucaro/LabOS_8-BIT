@@ -8,6 +8,7 @@ public class ClientHandler implements Runnable {
 
     Socket s;
     DataServer dataStructure;
+    Thread handlerThread;
 
     public ClientHandler(Socket s, DataServer ds) {
         this.s = s;
@@ -19,24 +20,37 @@ public class ClientHandler implements Runnable {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
             PrintWriter output = new PrintWriter(s.getOutputStream(), true);
-
             while(true){
                 String type = in.readLine();
                 String parts[] = type.split(" ");
+                if (!Thread.interrupted()) {
                 if(parts.length == 2) {
                     /* crea un nuovo thread per lo specifico socket */
-                    if(parts[0].equalsIgnoreCase("publish")) {                                
-                        Thread handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
+                    if(parts[0].equalsIgnoreCase("publish")) {                              
+                        handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
                         handlerThread.start();
+                        
+                        try{
+                            handlerThread.join();
+                        }
+                        catch(InterruptedException e) {
+
+                        }
                         break;
                     }
                     else if(parts[0].equalsIgnoreCase("Subscribe")) { 
                         this.dataStructure.acquire_read_Lock();
                         if(this.dataStructure.chats.keySet().contains(parts[1])){ 
                             this.dataStructure.release_read_Lock();  
-                            Thread handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
+                            handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
                             handlerThread.start();
-                            break;
+                            try{
+                                handlerThread.join();
+                            }
+                            catch(InterruptedException e) {
+    
+                            }
+                            break;    
                         }else{
                             this.dataStructure.release_read_Lock(); 
                             output.println("Topic doesn't exist");
@@ -63,18 +77,29 @@ public class ClientHandler implements Runnable {
                 else if(parts[0].equalsIgnoreCase("quit")) {
                     output.println("quit");
                     output.flush();
+                    break;
                 }
                 else {
                     output.println("Wrong command, try again : ");                           
                 }
+            }else{
+                    if(handlerThread!=null){
+                        handlerThread.interrupt();
+                        break;
+                    }else {
+                        break;
+                    }
+            }
+                 
             }
             output.println("quit");
             s.close();
             System.out.println("Closed");
-    } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println("ClientHandler: IOException caught: " + e);
             e.printStackTrace();
         }
 
-}
+    }
 }

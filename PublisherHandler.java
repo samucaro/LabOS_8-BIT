@@ -19,23 +19,22 @@ public class PublisherHandler implements Runnable {
 
     public void run() {
         try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pw = new PrintWriter(socket.getOutputStream());
-                this.dataStructure.acquire_write_Lock();
-                if(!dataStructure.getChats().containsKey(topic))
-                    dataStructure.addTopic(topic);
-                this.dataStructure.release_write_Lock();
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter pw = new PrintWriter(socket.getOutputStream());
+            this.dataStructure.acquire_write_Lock();
+            if(!dataStructure.getChats().containsKey(topic))
+                dataStructure.addTopic(topic);
+            this.dataStructure.release_write_Lock();
                 
-                while (true) {
-                    String parola = in.readLine(); 
+            while (true) {
+                String parola = in.readLine(); 
+                if (!Thread.interrupted()) {
                     if (parola == null) {
                         System.out.println("Connessione chiusa dal client");
                         break;
                     }
-                    String[] parole = parola.split(" "); 
-                    
 
-
+                    String[] parole = parola.split(" ");
                     switch(parole[0]) {
                         case "send": 
                             LocalDateTime now = LocalDateTime.now();
@@ -53,7 +52,7 @@ public class PublisherHandler implements Runnable {
                                 pw.println("Non hai ancora pubblicato nessun messaggio in questo topic");
                                 pw.flush();
                             }
-                            else{
+                            else {
                                 String messaggiIntero1 = "";
                                 for(Messagges m : this.clientMessages) {
                                     messaggiIntero1 += m.toString();
@@ -62,14 +61,14 @@ public class PublisherHandler implements Runnable {
                                 pw.flush();
                             }
                             break;
-                            
+                                
                         case "listall":
                             this.dataStructure.acquire_read_Lock();
                             if(this.dataStructure.chats.get(this.topic).size()==0){
                                 pw.println("Nessun messaggio presente nel topic");
                                 pw.flush();
                             }    
-                            else{
+                            else {
                                 String messaggiIntero2 = "";
                                 for(Messagges m : this.dataStructure.chats.get(this.topic)) {
                                     messaggiIntero2 += m.toString() + "\n";
@@ -79,25 +78,29 @@ public class PublisherHandler implements Runnable {
                             }
                             this.dataStructure.release_read_Lock();
                             break;
-                            
+                                
                         case "quit":
                             pw.println("quit");
                             pw.flush();
                             return;
-                        
+                            
                         default:
                             pw.println("ERRORE: hai usato un comando non disponibile ");
                             pw.flush();                
                     }   
-             
                 }
+                else {
+                    pw.println("quit");
+                    pw.flush();
+                    break;
+                }            
             }
-    
+        }
         catch(IOException e) {
-            System.err.println("PublishersHandler: IOException caught: " + e);
-            e.printStackTrace();
+            //System.err.println("PublishersHandler: IOException caught: " + e);
+            //e.printStackTrace();
         }catch(InterruptedException e){
-            System.err.println("Nicola fa schifo: " + e);
+            System.err.println("Exception: " + e);
             e.printStackTrace();
         }
     }
