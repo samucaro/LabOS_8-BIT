@@ -37,6 +37,37 @@ public class Server {
              */
             while (!command.equals("quit")) {
                 command = userInput.nextLine();
+                if(command.equals("show")){
+                    String topic = "Topics :";
+                    dataStructure.acquire_read_Lock();
+                    if(!dataStructure.getChats().keySet().isEmpty()){
+                        for (String string : dataStructure.getChats().keySet()) {
+                            topic = topic + "\n     - " + string;
+                        }
+                    }
+                    dataStructure.release_read_Lock();
+                    System.out.println(topic); 
+                }
+                else if(command.equals("inspect")){
+                    command = userInput.nextLine();
+                    dataStructure.acquire_read_Lock();
+                        if(dataStructure.chats.keySet().contains(command)){ 
+                            dataStructure.release_read_Lock();  
+                            Thread inspectThread = new Thread(new InspectHandler(dataStructure, command));
+                            inspectThread.start();
+                            try{
+                                inspectThread.join();
+                            }
+                            catch(InterruptedException e) {
+    
+                            }                            
+                        }
+                        else{
+                            dataStructure.release_read_Lock(); 
+                            System.out.println("Topic doesn't exist");
+                        }
+                }
+                
             }
             
 

@@ -72,8 +72,8 @@ public class SocketListener implements Runnable {
              * di interruzione proseguiamo con l'esecuzione, senza aspettare che "child"
              * termini
              */
-            if(child.isAlive())
-                child.interrupt();
+            //if(child.isAlive())
+            child.interrupt();
         }
 
     }
