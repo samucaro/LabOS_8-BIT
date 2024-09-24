@@ -17,7 +17,7 @@ public class DataServer {
 
     public synchronized void acquire_read_Lock(){
         while (db_writing) { 
-            System.out.println("sono in attesa");
+            //System.out.println("sono in attesa");
             try {
                 wait();
                 
