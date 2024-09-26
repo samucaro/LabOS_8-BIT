@@ -93,6 +93,7 @@ public class ClientHandler implements Runnable {
                  
             }
             output.println("quit");
+            output.flush();
             s.close();
             System.out.println("Closed");
         }

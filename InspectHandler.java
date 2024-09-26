@@ -14,15 +14,16 @@ public class InspectHandler implements Runnable{
      public void run() {
         Scanner scan = new Scanner(System.in);
         while(true) { 
-               
+               System.out.println("sei nel thread inspect");
                 String row = scan.nextLine();
                 if(row.equalsIgnoreCase("exit")) {
-                    scan.close();
+                    //scan.close();
+                    System.out.print("sei uscito dalla sessione iterattiva");
                     break;
                 }
                 
                 String[] comand = row.split(" ");
-                
+                System.out.println(comand[0]);
     
                 switch (comand[0]) {
                     case "linstall":
@@ -42,29 +43,31 @@ public class InspectHandler implements Runnable{
                                 int idToDelete = Integer.parseInt(comand[1]);
                                 if(this.dataStructure.deleteMessage(this.topic, idToDelete) == false)
                                     System.out.println("L' id specificato non è presente");
-                                this.dataStructure.release_write_Lock();
-
+                                
                             }//il metodo delete() di dataserver ora restituisce un booleano perchè non sempre può essere portata a termine
                             //ti spiego meglio domani
                             catch(NumberFormatException e) {
                                 System.out.println("Dopo il comando <delete> deve essere inserito un numero non una parola o un carattere");
+                                
+                            }finally{
+                                this.dataStructure.release_write_Lock();
                             }
                             
                         }
                         else {
+                            this.dataStructure.release_write_Lock();
                             System.out.println("Bisogna specificare anche l' ID dopo il comando <delete>");
                         }
                         break;
 
-                    case "end":
-                        return;
+                    
 
                     default:
                         System.out.println("Comando inesistente");
                 }
             }
-            scan.close();
-        this.dataStructure.release_write_Lock();
+            //scan.close();
+        
         System.out.println("Fine Sessione iterattiva lato server");
     }
 }

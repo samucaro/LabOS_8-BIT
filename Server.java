@@ -37,6 +37,7 @@ public class Server {
              */
             while (!command.equals("quit")) {
                 command = userInput.nextLine();
+                String[] commands=command.split(" ");
                 if(command.equals("show")){
                     String topic = "Topics :";
                     dataStructure.acquire_read_Lock();
@@ -48,24 +49,32 @@ public class Server {
                     dataStructure.release_read_Lock();
                     System.out.println(topic); 
                 }
-                else if(command.equals("inspect")){
-                    command = userInput.nextLine();
+                else if(commands[0].equals("inspect")){
+                    System.out.println("entro nel blocco inspect");
                     dataStructure.acquire_read_Lock();
-                        if(dataStructure.chats.keySet().contains(command)){ 
-                            dataStructure.release_read_Lock();  
-                            Thread inspectThread = new Thread(new InspectHandler(dataStructure, command));
+                        if(commands.length==2 && dataStructure.getChats().keySet().contains(commands[1])){ 
+                            dataStructure.release_read_Lock();
+                            System.out.println("avvio thread inspect"); 
+                            
+                            Thread inspectThread = new Thread(new InspectHandler(dataStructure, commands[1]));
                             inspectThread.start();
                             try{
                                 inspectThread.join();
+                                
                             }
                             catch(InterruptedException e) {
     
-                            }                            
+                            }                           
+                        }else if (command.length()<2) {
+                            dataStructure.release_read_Lock();
+                            System.out.println("Bisogna specificare il topic da ispezionare: <inspect> <topic_esistente>");
                         }
                         else{
-                            dataStructure.release_read_Lock(); 
+                            dataStructure.release_read_Lock();
                             System.out.println("Topic doesn't exist");
                         }
+                }else if(!command.equalsIgnoreCase("quit")){
+                    System.out.println("Comando non valido");
                 }
                 
             }
