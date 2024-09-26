@@ -13,61 +13,53 @@ public class InspectHandler implements Runnable{
     @Override
      public void run() {
         Scanner scan = new Scanner(System.in);
+        System.out.println("sei nel thread inspect");
+        this.dataStructure.acquire_write_Lock(topic);
         while(true) { 
-               System.out.println("sei nel thread inspect");
                 String row = scan.nextLine();
-                if(row.equalsIgnoreCase("exit")) {
+                if(row.equalsIgnoreCase("end")) {
                     //scan.close();
                     System.out.print("sei uscito dalla sessione iterattiva");
                     break;
                 }
                 
                 String[] comand = row.split(" ");
-                System.out.println(comand[0]);
+                //System.out.println(comand[0]);
     
                 switch (comand[0]) {
-                    case "linstall":
-                        this.dataStructure.acquire_read_Lock();
+                    case "listall":
                                 String messaggiIntero2 = "";
                                 for(Messagges m : this.dataStructure.chats.get(this.topic)) {
                                     messaggiIntero2 += m.toString();
                                 }
                                 System.out.println(messaggiIntero2);
-                                this.dataStructure.release_read_Lock();
                                 break;
     
                     case "delete":
-                    this.dataStructure.acquire_write_Lock();
                         if(comand.length == 2) {
                             try {
                                 int idToDelete = Integer.parseInt(comand[1]);
                                 if(this.dataStructure.deleteMessage(this.topic, idToDelete) == false)
                                     System.out.println("L' id specificato non è presente");
                                 
-                            }//il metodo delete() di dataserver ora restituisce un booleano perchè non sempre può essere portata a termine
-                            //ti spiego meglio domani
+                            }
                             catch(NumberFormatException e) {
                                 System.out.println("Dopo il comando <delete> deve essere inserito un numero non una parola o un carattere");
                                 
-                            }finally{
-                                this.dataStructure.release_write_Lock();
                             }
                             
                         }
                         else {
-                            this.dataStructure.release_write_Lock();
                             System.out.println("Bisogna specificare anche l' ID dopo il comando <delete>");
                         }
                         break;
 
-                    
-
                     default:
                         System.out.println("Comando inesistente");
                 }
-            }
-            //scan.close();
-        
+        }
+            
+        this.dataStructure.release_write_Lock(topic);
         System.out.println("Fine Sessione iterattiva lato server");
     }
 }

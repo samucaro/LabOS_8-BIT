@@ -4,35 +4,63 @@ import java.util.HashMap;
 public class DataServer {
 
     HashMap<String, ArrayList<Messagges>> chats; //importante per tenere traccia di topic e messaggi inviati ad ogniuno di essi
+    HashMap<String, Lock> topicCondition;
     int contatoreID;
-    boolean db_writing;//flag che ci dice quando possiamo scrivere
+    boolean db_writing;
     int num_sub;
+
+
+    private class Lock{
+        
+        boolean topicWriting;
+        int numSub;
+
+        public Lock(boolean topicWriting, int num_sub) {
+            this.topicWriting = topicWriting;
+            this.numSub = num_sub;
+        }
+
+        public Lock() {
+            this.topicWriting = false;
+            this.numSub = 0;
+        }
+        
+        public void incrementNumSub(){
+            numSub++;
+        }
+
+        public void decrementNumSub(){
+            numSub--;
+        }
+        
+    }
+
     
     public DataServer(HashMap<String, ArrayList<Messagges>> c) {
         this.chats = c;
         this.contatoreID = 0;
-        this.db_writing=false;
-        this.num_sub=0;
+        this.topicCondition = new HashMap<String, Lock>();
     }
 
     public synchronized void acquire_read_Lock(){
         while (db_writing) { 
-            //System.out.println("sono in attesa");
+            System.out.println("sono in attesa");
             try {
                 wait();
                 
             } catch (InterruptedException e) {
-            } 
+            }
+            
         }
         num_sub++;
     }
-
+    
     public synchronized void release_read_Lock(){
         num_sub--;
         if(num_sub==0)
             notify();
     }
-
+    
     public synchronized void acquire_write_Lock(){
         while(db_writing || num_sub!=0){
             try {
@@ -48,21 +76,48 @@ public class DataServer {
        
        notifyAll();
     }
+
+    public synchronized void acquire_read_Lock(String topic){
+        while (topicCondition.get(topic).topicWriting) { 
+            //System.out.println("sono in attesa");
+            try {
+                wait();
+                
+            } catch (InterruptedException e) {
+            } 
+        }
+        topicCondition.get(topic).incrementNumSub();
+    }
+
+    public synchronized void release_read_Lock(String topic){
+        topicCondition.get(topic).decrementNumSub();
+        
+        if(topicCondition.get(topic).numSub == 0)
+            notify();
+    }
+
+    public synchronized void acquire_write_Lock(String topic){
+        while(topicCondition.get(topic).topicWriting || topicCondition.get(topic).numSub!=0){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+            }
+        }
+        topicCondition.get(topic).topicWriting = true;
+    }
+    
+    public synchronized void release_write_Lock(String topic){
+       topicCondition.get(topic).topicWriting = false;
+       
+       notifyAll();
+    }
         
    
     public void addMessage(String contenuto, String topic, String dataOra) throws InterruptedException{
         contatoreID++;
         Messagges message = new Messagges(this.contatoreID, contenuto, dataOra);
-        if(this.chats.containsKey(topic)) {//esiste già un topic con questo nome
-            this.chats.get(topic).add(message);
-            
-        }
+        this.chats.get(topic).add(message);
 
-        else { 
-            ArrayList<Messagges> first = new ArrayList<Messagges>();
-            first.add(message);
-            this.chats.put(topic, first);
-        }
     }
 
     public boolean deleteMessage(String topic, int idMessage){
@@ -71,18 +126,19 @@ public class DataServer {
         if(idMessage <= this.chats.get(topic).get(this.chats.get(topic).size()-1).id && idMessage > 0){
             for (int i = 0; i < this.chats.get(topic).size(); i++) {
             m = this.chats.get(topic).get(i);
-            if(m.id == idMessage) {
-                this.chats.get(topic).remove(i);
-                deleted = true;
+                if(m.id == idMessage) {
+                    this.chats.get(topic).remove(i);
+                    deleted = true;
+                }
             }
         }
-        }
-            return deleted;
-    
+        return deleted;
     }
     
+    // Metodo per aggiungere un nuovo topic alla risorsa condivisa
     public void addTopic(String newTopic){
         this.chats.put(newTopic, new ArrayList<Messagges>());
+        this.topicCondition.put(newTopic, new Lock());
     }
     
     // Metodo sincronizzato per leggere i messaggi di un topic

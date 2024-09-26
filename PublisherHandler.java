@@ -23,7 +23,7 @@ public class PublisherHandler implements Runnable {
             PrintWriter pw = new PrintWriter(socket.getOutputStream());
             this.dataStructure.acquire_write_Lock();
             if(!dataStructure.getChats().containsKey(topic))
-                dataStructure.addTopic(topic);
+                this.dataStructure.addTopic(topic);
             this.dataStructure.release_write_Lock();
                 
             while (true) {
@@ -40,11 +40,11 @@ public class PublisherHandler implements Runnable {
                             LocalDateTime now = LocalDateTime.now();
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                             String formattedDateTime = now.format(formatter);
-                            this.dataStructure.acquire_write_Lock(); //acquisiamo il lock in scrittura
+                            this.dataStructure.acquire_write_Lock(topic); //acquisiamo il lock in scrittura
                             //String varifica=in.readLine();
                             dataStructure.addMessage(parola.substring(5), this.topic, formattedDateTime);
                             clientMessages.add(new Messagges(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
-                            this.dataStructure.release_write_Lock(); //rilasciamo il lock in scrittura
+                            this.dataStructure.release_write_Lock(topic); //rilasciamo il lock in scrittura
                             break;
 
                         case "list":
@@ -55,7 +55,7 @@ public class PublisherHandler implements Runnable {
                             else {
                                 String messaggiIntero1 = "";
                                 for(Messagges m : this.clientMessages) {
-                                    messaggiIntero1 += m.toString();
+                                    messaggiIntero1 += m.toString() + "\n";
                                 }
                                 pw.println(messaggiIntero1); 
                                 pw.flush();
@@ -63,7 +63,7 @@ public class PublisherHandler implements Runnable {
                             break;
                                 
                         case "listall":
-                            this.dataStructure.acquire_read_Lock();
+                            this.dataStructure.acquire_read_Lock(topic);
                             if(this.dataStructure.chats.get(this.topic).size()==0){
                                 pw.println("Nessun messaggio presente nel topic");
                                 pw.flush();
@@ -76,7 +76,7 @@ public class PublisherHandler implements Runnable {
                                 pw.println(messaggiIntero2); 
                                 pw.flush();
                             }
-                            this.dataStructure.release_read_Lock();
+                            this.dataStructure.release_read_Lock(topic);
                             break;
                                 
                         case "quit":

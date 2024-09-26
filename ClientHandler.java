@@ -26,7 +26,7 @@ public class ClientHandler implements Runnable {
                 if (!Thread.interrupted()) {
                 if(parts.length == 2) {
                     /* crea un nuovo thread per lo specifico socket */
-                    if(parts[0].equalsIgnoreCase("publish")) {                              
+                    if(parts[0].equalsIgnoreCase("publish")) { 
                         handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
                         handlerThread.start();
                         
@@ -82,7 +82,8 @@ public class ClientHandler implements Runnable {
                 else {
                     output.println("Wrong command, try again : ");                           
                 }
-            }else{
+            }
+            else{
                     if(handlerThread!=null){
                         handlerThread.interrupt();
                         break;
