@@ -40,7 +40,7 @@ public class ClientHandler implements Runnable {
                     }
                     else if(parts[0].equalsIgnoreCase("Subscribe")) { 
                         this.dataStructure.acquire_read_Lock();
-                        if(this.dataStructure.chats.keySet().contains(parts[1])){ 
+                        if(this.dataStructure.getChats().keySet().contains(parts[1])){ 
                             this.dataStructure.release_read_Lock();  
                             handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
                             handlerThread.start();
@@ -96,7 +96,7 @@ public class ClientHandler implements Runnable {
             output.println("quit");
             output.flush();
             s.close();
-            System.out.println("Closed");
+            System.out.println("Client Closed");
         }
         catch (IOException e) {
             System.err.println("ClientHandler: IOException caught: " + e);

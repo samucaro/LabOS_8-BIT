@@ -8,7 +8,7 @@ public class PublisherHandler implements Runnable {
     
     DataServer dataStructure;
     Socket socket;
-    ArrayList<Messagges> clientMessages = new ArrayList<Messagges>();
+    ArrayList<Message> clientMessages = new ArrayList<Message>();
     String topic;
 
     public PublisherHandler(Socket s,DataServer c, String topic) {
@@ -19,18 +19,19 @@ public class PublisherHandler implements Runnable {
 
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
+            BufferedReader clientInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter clientOutput = new PrintWriter(socket.getOutputStream());
+
             this.dataStructure.acquire_write_Lock();
             if(!dataStructure.getChats().containsKey(topic))
                 this.dataStructure.addTopic(topic);
             this.dataStructure.release_write_Lock();
                 
             while (true) {
-                String parola = in.readLine(); 
+                String parola = clientInput.readLine(); 
                 if (!Thread.interrupted()) {
                     if (parola == null) {
-                        System.out.println("Connessione chiusa dal client");
+                        System.out.println("Connection closed by Client\n");
                         break;
                     }
 
@@ -41,57 +42,60 @@ public class PublisherHandler implements Runnable {
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                             String formattedDateTime = now.format(formatter);
                             this.dataStructure.acquire_write_Lock(topic); //acquisiamo il lock in scrittura
-                            //String varifica=in.readLine();
                             dataStructure.addMessage(parola.substring(5), this.topic, formattedDateTime);
-                            clientMessages.add(new Messagges(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
+                            clientMessages.add(new Message(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
                             this.dataStructure.release_write_Lock(topic); //rilasciamo il lock in scrittura
                             break;
 
                         case "list":
                             if(this.clientMessages.size()==0){
-                                pw.println("Non hai ancora pubblicato nessun messaggio in questo topic");
-                                pw.flush();
+                                clientOutput.println("No messages sent by the Client\n");
+                                clientOutput.flush();
                             }
                             else {
                                 String messaggiIntero1 = "";
-                                for(Messagges m : this.clientMessages) {
+                                for(Message m : this.clientMessages) {
                                     messaggiIntero1 += m.toString() + "\n";
                                 }
-                                pw.println(messaggiIntero1); 
-                                pw.flush();
+                                clientOutput.println(messaggiIntero1); 
+                                clientOutput.flush();
                             }
                             break;
                                 
                         case "listall":
                             this.dataStructure.acquire_read_Lock(topic);
-                            if(this.dataStructure.chats.get(this.topic).size()==0){
-                                pw.println("Nessun messaggio presente nel topic");
-                                pw.flush();
+                            if(this.dataStructure.getChats(this.topic).isEmpty()){
+                                clientOutput.println("0 messages sent in this topic\n");
+                                clientOutput.flush();
                             }    
                             else {
-                                String messaggiIntero2 = "";
-                                for(Messagges m : this.dataStructure.chats.get(this.topic)) {
-                                    messaggiIntero2 += m.toString() + "\n";
+                                String message = "";
+                                int countMessages = this.dataStructure.getChats(this.topic).size();
+                                clientOutput.println(countMessages+ " messages sent in this topic\n");
+                                clientOutput.flush();
+
+                                for(Message m : this.dataStructure.chats.get(this.topic)) {
+                                    message += m.toString() + "\n";
                                 }
-                                pw.println(messaggiIntero2); 
-                                pw.flush();
+                                clientOutput.println(message); 
+                                clientOutput.flush();
                             }
                             this.dataStructure.release_read_Lock(topic);
                             break;
                                 
                         case "quit":
-                            pw.println("quit");
-                            pw.flush();
+                            clientOutput.println("quit");
+                            clientOutput.flush();
                             return;
                             
                         default:
-                            pw.println("ERRORE: hai usato un comando non disponibile ");
-                            pw.flush();                
+                            clientOutput.println("Not valid command\n");
+                            clientOutput.flush();                
                     }   
                 }
                 else {
-                    pw.println("quit");
-                    pw.flush();
+                    clientOutput.println("quit");
+                    clientOutput.flush();
                     break;
                 }            
             }

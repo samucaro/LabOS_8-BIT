@@ -3,7 +3,7 @@ import java.util.HashMap;
 
 public class DataServer {
 
-    HashMap<String, ArrayList<Messagges>> chats; //importante per tenere traccia di topic e messaggi inviati ad ogniuno di essi
+    HashMap<String, ArrayList<Message>> chats; //importante per tenere traccia di topic e messaggi inviati ad ogniuno di essi
     HashMap<String, Lock> topicCondition;
     int contatoreID;
     boolean db_writing;
@@ -36,7 +36,7 @@ public class DataServer {
     }
 
     
-    public DataServer(HashMap<String, ArrayList<Messagges>> c) {
+    public DataServer(HashMap<String, ArrayList<Message>> c) {
         this.chats = c;
         this.contatoreID = 0;
         this.topicCondition = new HashMap<String, Lock>();
@@ -44,7 +44,7 @@ public class DataServer {
 
     public synchronized void acquire_read_Lock(){
         while (db_writing) { 
-            System.out.println("sono in attesa");
+            //System.out.println("sono in attesa");
             try {
                 wait();
                 
@@ -115,14 +115,14 @@ public class DataServer {
    
     public void addMessage(String contenuto, String topic, String dataOra) throws InterruptedException{
         contatoreID++;
-        Messagges message = new Messagges(this.contatoreID, contenuto, dataOra);
+        Message message = new Message(this.contatoreID, contenuto, dataOra);
         this.chats.get(topic).add(message);
 
     }
 
     public boolean deleteMessage(String topic, int idMessage){
         boolean deleted = false;
-        Messagges m;
+        Message m;
         if(idMessage <= this.chats.get(topic).get(this.chats.get(topic).size()-1).id && idMessage > 0){
             for (int i = 0; i < this.chats.get(topic).size(); i++) {
             m = this.chats.get(topic).get(i);
@@ -137,16 +137,16 @@ public class DataServer {
     
     // Metodo per aggiungere un nuovo topic alla risorsa condivisa
     public void addTopic(String newTopic){
-        this.chats.put(newTopic, new ArrayList<Messagges>());
+        this.chats.put(newTopic, new ArrayList<Message>());
         this.topicCondition.put(newTopic, new Lock());
     }
     
     // Metodo sincronizzato per leggere i messaggi di un topic
-    public ArrayList<Messagges> getChats(String topic) {
-        return this.chats.getOrDefault(topic, new ArrayList<Messagges>());
+    public ArrayList<Message> getChats(String topic) {
+        return this.chats.getOrDefault(topic, new ArrayList<Message>());
     }
 
-    public HashMap<String, ArrayList<Messagges>> getChats() {
+    public HashMap<String, ArrayList<Message>> getChats() {
         return chats;
     }
 

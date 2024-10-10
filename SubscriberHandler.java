@@ -16,44 +16,56 @@ public class SubscriberHandler implements Runnable {
     @Override
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
+            BufferedReader clientInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter clientOutput = new PrintWriter(socket.getOutputStream());
            
             while(true) {
-                String parola = in.readLine(); 
+                String input = clientInput.readLine(); 
                 if (!Thread.interrupted()) {
-                    if (parola == null) {
-                        System.out.println("Connessione chiusa dal client");
+                    if (input == null) {
+                        System.out.println("Connection closed by Client\n");
                         break;
                     } 
                     else {
-                        String[] parole=parola.split(" ");  
-                        switch (parole[0]) {
+                        String[] strings = input.split(" "); 
+                         
+                        switch (strings[0]) {
+
                             case "listall":
                                 this.dataStructure.acquire_read_Lock(topic);
-                                String messaggiIntero2 = "";
-                                for(Messagges m : this.dataStructure.chats.get(this.topic)) {
-                                messaggiIntero2 += m.toString();
+                                if(this.dataStructure.getChats(this.topic).isEmpty()){
+                                    clientOutput.println("0 messages sent in this topic\n");
+                                    clientOutput.flush();
+                                }    
+                                else {
+                                    String message = "";
+                                    int countMessages = this.dataStructure.getChats(this.topic).size();
+                                    clientOutput.println(countMessages+ " messages sent in this topic\n");
+                                    clientOutput.flush();
+
+                                    for(Message m : this.dataStructure.chats.get(this.topic)) {
+                                        message += m.toString() + "\n";
+                                    }
+                                    clientOutput.println(message); 
+                                    clientOutput.flush();
                                 }
-                                pw.println(messaggiIntero2); 
-                                pw.flush();
                                 this.dataStructure.release_read_Lock(topic);
                                 break;
                                 
                             case "quit":
-                                pw.println("quit");
-                                pw.flush();
+                                clientOutput.println("quit");
+                                clientOutput.flush();
                                 return;
                                 
                             default:  
-                                pw.println("ERRORE: hai usato un comando non disponibile ");
-                                pw.flush();
+                                clientOutput.println("Not valid command\n");
+                                clientOutput.flush();
                         }    
                     }
                 }
                 else {
-                    pw.println("quit");
-                    pw.flush();
+                    clientOutput.println("quit");
+                    clientOutput.flush();
                     break; 
                 }   
             }

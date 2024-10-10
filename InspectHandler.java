@@ -13,13 +13,13 @@ public class InspectHandler implements Runnable{
     @Override
      public void run() {
         Scanner scan = new Scanner(System.in);
-        System.out.println("sei nel thread inspect");
+        System.out.println("Interactive session started\n");
         this.dataStructure.acquire_write_Lock(topic);
         while(true) { 
                 String row = scan.nextLine();
                 if(row.equalsIgnoreCase("end")) {
                     //scan.close();
-                    System.out.print("sei uscito dalla sessione iterattiva");
+                    System.out.print("Interactive session ended\n");
                     break;
                 }
                 
@@ -29,7 +29,7 @@ public class InspectHandler implements Runnable{
                 switch (comand[0]) {
                     case "listall":
                                 String messaggiIntero2 = "";
-                                for(Messagges m : this.dataStructure.chats.get(this.topic)) {
+                                for(Message m : this.dataStructure.getChats(this.topic)) {
                                     messaggiIntero2 += m.toString();
                                 }
                                 System.out.println(messaggiIntero2);
@@ -40,26 +40,24 @@ public class InspectHandler implements Runnable{
                             try {
                                 int idToDelete = Integer.parseInt(comand[1]);
                                 if(this.dataStructure.deleteMessage(this.topic, idToDelete) == false)
-                                    System.out.println("L' id specificato non è presente");
+                                    System.out.println("ID not found\n");
                                 
                             }
                             catch(NumberFormatException e) {
-                                System.out.println("Dopo il comando <delete> deve essere inserito un numero non una parola o un carattere");
+                                System.out.println("Error Content-Type: <delete> <int>\n");
                                 
                             }
                             
                         }
                         else {
-                            System.out.println("Bisogna specificare anche l' ID dopo il comando <delete>");
+                            System.out.println("Error Content-Type: <delete> <int>\n");
                         }
                         break;
 
                     default:
-                        System.out.println("Comando inesistente");
+                        System.out.println("Not valid command\n");
                 }
-        }
-            
+        }   
         this.dataStructure.release_write_Lock(topic);
-        System.out.println("Fine Sessione iterattiva lato server");
     }
 }

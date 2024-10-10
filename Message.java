@@ -1,10 +1,10 @@
-public class Messagges {
+public class Message {
 
     int id;
     String contents;
     String dataOra;
 
-    public Messagges(int id, String content, String dataOra){
+    public Message(int id, String content, String dataOra){
         this.id = id;
         this.contents = content;
         this.dataOra=dataOra;

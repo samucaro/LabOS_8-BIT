@@ -10,7 +10,7 @@ public class Server {
     
     public static void main(String[] args) {
         
-        DataServer dataStructure = new DataServer(new HashMap<String, ArrayList<Messagges>>());
+        DataServer dataStructure = new DataServer(new HashMap<String, ArrayList<Message>>());
         
         if (args.length < 1) {
             System.err.println("Usage: java Server <port>");
@@ -52,9 +52,7 @@ public class Server {
                 else if(commands[0].equals("inspect")){
                     dataStructure.acquire_read_Lock();
                         if(commands.length==2 && dataStructure.getChats().keySet().contains(commands[1])){ 
-                            dataStructure.release_read_Lock();
-                            System.out.println("avvio thread inspect"); 
-                            
+                            dataStructure.release_read_Lock();                            
                             Thread inspectThread = new Thread(new InspectHandler(dataStructure, commands[1]));
                             inspectThread.start();
                             try{
@@ -66,14 +64,14 @@ public class Server {
                             }                           
                         }else if (commands.length < 2) {
                             dataStructure.release_read_Lock();
-                            System.out.println("Bisogna specificare il topic da ispezionare: <inspect> <topic_esistente>");
+                            System.out.println("Error Content-Type: <inspect> <topic>\n");
                         }
                         else{
                             dataStructure.release_read_Lock();
-                            System.out.println("Topic doesn't exist");
+                            System.out.println("Topic doesn't exist\n");
                         }
                 }else if(!command.equalsIgnoreCase("quit")){
-                    System.out.println("Comando non valido");
+                    System.out.println("Not valid command\n");
                 }
                 
             }
