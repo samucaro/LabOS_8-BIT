@@ -30,7 +30,7 @@ public class SocketListener implements Runnable {
                      * SocketTimeoutException, dopo la quale potremo ricontrollare lo stato del
                      * Thread nella condizione del while().
                      */
-                    Socket s = this.server.accept();
+                    Socket s = this.server.accept(); //il metodo accept ritorna un oggetto socket
                     
                     if (!Thread.interrupted()) {
                         System.out.println("Client connected");

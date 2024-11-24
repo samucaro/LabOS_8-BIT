@@ -13,8 +13,8 @@ public class InspectHandler implements Runnable{
     @Override
      public void run() {
         Scanner scan = new Scanner(System.in);
-        System.out.println("Interactive session started\n");
         this.dataStructure.acquire_write_Lock(topic);
+        System.out.println("Interactive session started\n");
         while(true) { 
                 String row = scan.nextLine();
                 if(row.equalsIgnoreCase("end")) {

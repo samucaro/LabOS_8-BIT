@@ -38,8 +38,8 @@ public class DataServer {
     
     public DataServer(HashMap<String, ArrayList<Message>> c) {
         this.chats = c;
-        this.contatoreID = 0;
-        this.topicCondition = new HashMap<String, Lock>();
+        this.contatoreID = 0; //serve per garantire l'univocita' dei messaggi
+        this.topicCondition = new HashMap<String, Lock>(); //permette di acquisire il lock solo su un topic specifico
     }
 
     public synchronized void acquire_read_Lock(){

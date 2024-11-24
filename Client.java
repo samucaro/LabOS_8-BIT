@@ -12,7 +12,10 @@ public class Client{
         int port = Integer.parseInt(args[1]);
 
         try {
-            Socket s = new Socket(host, port); //bloccante
+            //Qui il client tenta di aprire una conessione TCP verso il server
+            //specificando host e port. La chiamata e' bloccante, cio' vuol dire
+            //che il programma rimane sospeso finche' non viene stabilita la connessione 
+            Socket s = new Socket(host, port);
             System.out.println("Connected to server");
             System.out.println("Publisher or Subscriber");
 

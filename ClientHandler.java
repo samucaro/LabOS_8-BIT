@@ -18,10 +18,10 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));//Qui arriva l'input da tastiera del client
             PrintWriter output = new PrintWriter(s.getOutputStream(), true);
             while(true){
-                String type = in.readLine();
+                String type = in.readLine();//Qui il clientHandler preleva il messaggio del client
                 String parts[] = type.split(" ");
                 if (!Thread.interrupted()) {
                 if(parts.length == 2) {

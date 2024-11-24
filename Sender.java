@@ -13,9 +13,9 @@ public class Sender implements Runnable {
 
     @Override
     public void run() {
-        Scanner userInput = new Scanner(System.in);
+        Scanner userInput = new Scanner(System.in);//prendo in input cio che l'utente scrive da tastiera
 
-        try {
+        try {//Creo lo strumento che mi permette di scrivere qualcosa sul canale di comunicazione(socket)
             PrintWriter to = new PrintWriter(this.s.getOutputStream(), true);
             while (true) {
                 String request = userInput.nextLine();
