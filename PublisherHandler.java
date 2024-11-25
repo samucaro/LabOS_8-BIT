@@ -53,11 +53,11 @@ public class PublisherHandler implements Runnable {
                                 clientOutput.flush();
                             }
                             else {
-                                String messaggiIntero1 = "";
+                                String messaggiIntero = "";
                                 for(Message m : this.clientMessages) {
-                                    messaggiIntero1 += m.toString() + "\n";
+                                    messaggiIntero += m.toString() + "\n";
                                 }
-                                clientOutput.println(messaggiIntero1); 
+                                clientOutput.println(messaggiIntero); 
                                 clientOutput.flush();
                             }
                             break;
