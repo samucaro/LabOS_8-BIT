@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class PublisherHandler implements Runnable {
+public class PublisherHandler implements Runnable  {
     
     DataServer dataStructure;
     Socket socket;
@@ -45,6 +45,15 @@ public class PublisherHandler implements Runnable {
                             dataStructure.addMessage(parola.substring(5), this.topic, formattedDateTime);
                             clientMessages.add(new Message(dataStructure.getContatoreID(), parola.substring(5), formattedDateTime));
                             this.dataStructure.release_write_Lock(topic); //rilasciamo il lock in scrittura
+                            
+                            this.dataStructure.acquire_read_Lock(topic);
+                            for (SubscriberHandler sub : this.dataStructure.subs.get(this.topic)) {
+                                PrintWriter subOutput = new PrintWriter(sub.getSocket().getOutputStream());
+                                subOutput.println("New message in topic " + this.topic + ": " + parola.substring(5));
+                                subOutput.flush();
+                            }
+                            this.dataStructure.release_read_Lock(topic);
+
                             break;
 
                         case "list":

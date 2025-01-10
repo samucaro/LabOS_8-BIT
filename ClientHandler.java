@@ -24,74 +24,77 @@ public class ClientHandler implements Runnable {
                 String type = in.readLine();//Qui il clientHandler preleva il messaggio del client
                 String parts[] = type.split(" ");
                 if (!Thread.interrupted()) {
-                if(parts.length == 2) {
+                    if(parts.length == 2) {
                     /* crea un nuovo thread per lo specifico socket */
-                    if(parts[0].equalsIgnoreCase("publish")) { 
-                        handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
-                        handlerThread.start();
-                        
-                        try{
-                            handlerThread.join();
-                        }
-                        catch(InterruptedException e) {
-
-                        }
-                        break;
-                    }
-                    else if(parts[0].equalsIgnoreCase("Subscribe")) { 
-                        this.dataStructure.acquire_read_Lock();
-                        if(this.dataStructure.getChats().keySet().contains(parts[1])){ 
-                            this.dataStructure.release_read_Lock();  
-                            handlerThread = new Thread(new SubscriberHandler(s, dataStructure, parts[1]));
+                        if(parts[0].equalsIgnoreCase("publish")) { 
+                            handlerThread = new Thread(new PublisherHandler(s, dataStructure, parts[1]));
                             handlerThread.start();
+                        
                             try{
                                 handlerThread.join();
                             }
                             catch(InterruptedException e) {
-    
+
                             }
-                            break;    
-                        }else{
-                            this.dataStructure.release_read_Lock(); 
-                            output.println("Topic doesn't exist");
-                            output.flush();
-                        }     
-                              
-                    }                           
-                    else {
-                        output.println("Wrong command, try again : ");
-                    }
-                } 
-                else if(parts[0].equalsIgnoreCase("Show")) {
-                    String topic = "Topics :";
-                    this.dataStructure.acquire_read_Lock();
-                    if(!this.dataStructure.getChats().keySet().isEmpty()){
-                        for (String string : this.dataStructure.getChats().keySet()) {
-                            topic = topic + "\n     - " + string;
+                            break;
                         }
+                        else if(parts[0].equalsIgnoreCase("Subscribe")) { 
+                            this.dataStructure.acquire_read_Lock();
+                            if(this.dataStructure.getChats().keySet().contains(parts[1])){ 
+                                this.dataStructure.release_read_Lock();  
+                                SubscriberHandler subscriberHandlerTemp = new SubscriberHandler(s, dataStructure, parts[1]); 
+                                handlerThread = new Thread(subscriberHandlerTemp);
+                                this.dataStructure.acquire_write_Lock();
+                                this.dataStructure.subs.get(parts[1]).add(subscriberHandlerTemp);
+                                this.dataStructure.release_write_Lock();
+                                handlerThread.start();
+                                try{
+                                    handlerThread.join();
+                                }
+                                catch(InterruptedException e) {
+        
+                                }
+                                break;    
+                            }else{
+                                this.dataStructure.release_read_Lock(); 
+                                output.println("Topic doesn't exist");
+                                output.flush();
+                            }     
+                        }                           
+                        else {
+                            output.println("Wrong command, try again : ");
+                        }
+                    } 
+                    else if(parts[0].equalsIgnoreCase("Show")) {
+                        String topic = "Topics :";
+                        this.dataStructure.acquire_read_Lock();
+                        if(!this.dataStructure.getChats().keySet().isEmpty()){
+                            for (String string : this.dataStructure.getChats().keySet()) {
+                                topic = topic + "\n     - " + string;
+                            }
+                        }
+                        this.dataStructure.release_read_Lock();
+                        output.println(topic);
+                        output.flush();  
                     }
-                    this.dataStructure.release_read_Lock();
-                    output.println(topic);
-                    output.flush();  
+                    else if(parts[0].equalsIgnoreCase("quit")) {
+                        output.println("quit");
+                        output.flush();
+                        break;
+                    }
+                    else {
+                        output.println("Wrong command, try again : ");                           
+                    }
                 }
-                else if(parts[0].equalsIgnoreCase("quit")) {
-                    output.println("quit");
-                    output.flush();
-                    break;
-                }
-                else {
-                    output.println("Wrong command, try again : ");                           
-                }
-            }
-            else{
+                else{
                     if(handlerThread!=null){
                         handlerThread.interrupt();
                         break;
                     }else {
                         break;
                     }
-            }
-                 
+                }
+                    
             }
             output.println("quit");
             output.flush();

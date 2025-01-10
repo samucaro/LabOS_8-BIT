@@ -1,9 +1,9 @@
 import java.io.*;
 import java.net.Socket;
 
-public class SubscriberHandler implements Runnable {
+public class SubscriberHandler implements Runnable  {
     
-    Socket socket;
+    Socket socket;                      
     DataServer dataStructure;
     String topic;
 
@@ -12,6 +12,11 @@ public class SubscriberHandler implements Runnable {
         this.dataStructure = ds;
         this.topic = topic;
     }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
     
     @Override
     public void run() {
@@ -53,8 +58,12 @@ public class SubscriberHandler implements Runnable {
                                 break;
                                 
                             case "quit":
+                                this.dataStructure.acquire_read_Lock(topic);
+                                this.dataStructure.removeSubscriber(topic, this);
+                                this.dataStructure.release_read_Lock(topic);
                                 clientOutput.println("quit");
                                 clientOutput.flush();
+                                
                                 return;
                                 
                             default:  
